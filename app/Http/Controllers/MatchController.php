@@ -14,16 +14,13 @@ class MatchController extends Controller
         $user = auth()->user();
 
         if (!$user) {
-            // Si el usuario no está autenticado
             return view('match.results', [
                 'error' => 'Debes iniciar sesión para ver tus resultados.'
             ]);
         }
 
-        // Calculamos el mejor match entre el usuario y los psicólogos
         $bestMatch = $this->calculateBestMatch($user);
 
-        // Verificamos si hay un mejor match y en caso de no haberlo, mostramos un mensaje
         if (!$bestMatch) {
             return view('match.results', [
                 'error' => 'No hemos podido encontrar coincidencias. Por favor completa el test nuevamente.'
@@ -36,99 +33,91 @@ class MatchController extends Controller
         ]);
     }
 
-    private function calculateBestMatch(User $user)
+    private function calculateBestMatch($user)
     {
-        if (!$user->answers()->exists()) {
-            return null; // Si el usuario no ha respondido preguntas, no hay coincidencias
+        $userMbti = $user->mbti_type;
+
+        if (!$userMbti) {
+            return null;
         }
 
-        $psychologists = Psychologist::with(['answers'])->get();
-
+        $psychologists = Psychologist::all();
         $bestMatch = null;
         $highestPercentage = 0;
+        $reasons = [];
 
         foreach ($psychologists as $psychologist) {
-            // Calcular el porcentaje de coincidencia entre el usuario y el psicólogo
-            $currentPercentage = $this->calculateFinalMatchPercentage($user, $psychologist);
-            
-            // Verificar si esta coincidencia es la mejor
-            if ($currentPercentage > $highestPercentage) {
-                $highestPercentage = $currentPercentage;
-                $bestMatch = [
-                    'psychologist' => $psychologist,
-                    'percentage' => $currentPercentage,
-                    'reasons' => $this->generateMatchReasons($psychologist)
-                ];
+            $percentage = $this->calculateFinalMatchPercentage($user, $psychologist);
+
+            if ($percentage > $highestPercentage) {
+                $highestPercentage = $percentage;
+                $bestMatch = $psychologist;
+                $reasons = $this->generateMatchReasons($psychologist, $user);
             }
         }
 
-        // Si no hay coincidencias con porcentaje alto, devuelve una coincidencia con los mensajes
-        if ($bestMatch && $bestMatch['percentage'] < 50) {
-            $bestMatch['percentage'] = null;  // No mostrar el porcentaje si es menor al 50
-            $bestMatch['reasons'][] = 'Aunque la coincidencia no es alta, creemos que podrías beneficiarte de este psicólogo.';
+        if ($bestMatch) {
+            return [
+                'psychologist' => $bestMatch,
+                'percentage' => round($highestPercentage, 2),
+                'reasons' => $reasons
+            ];
         }
 
-        return $bestMatch;
+        return null;
     }
 
-    // Método para calcular el porcentaje de coincidencia basado en las respuestas
     private function calculateMatchPercentage(User $user, Psychologist $psychologist)
     {
         $userAnswers = $user->answers()->pluck('answer_text', 'question_id');
         $psychologistAnswers = $psychologist->answers()->pluck('answer_text', 'question_id');
 
-        $totalQuestions = $userAnswers->count();  // Total de preguntas respondidas
-        $matchingAnswers = 0;  // Respuestas coincidentes
+        $totalQuestions = $userAnswers->count();
+        $matchingAnswers = 0;
 
-        // Comparar las respuestas
         foreach ($userAnswers as $questionId => $userAnswer) {
             if (isset($psychologistAnswers[$questionId]) && $userAnswer === $psychologistAnswers[$questionId]) {
                 $matchingAnswers++;
             }
         }
 
-        $percentage = $totalQuestions > 0 ? ($matchingAnswers / $totalQuestions) * 100 : 0;
-
-        return $percentage;
+        return $totalQuestions > 0 ? ($matchingAnswers / $totalQuestions) * 100 : 0;
     }
 
-    // Método para calcular la coincidencia del tipo MBTI
     private function calculateMBTICoincidence(User $user, Psychologist $psychologist)
     {
         $userMBTI = $user->mbti_type;
         $psychologistMBTI = $psychologist->mbti_type;
 
-        // Si los tipos MBTI son iguales, la coincidencia es 100%
         if ($userMBTI === $psychologistMBTI) {
             return 100;
         }
 
-        // Si no son iguales, asignamos una coincidencia parcial (ajustar según tus necesidades)
-        return 50;  // O alguna lógica para calcular coincidencias parciales
+        // Lógica de coincidencia parcial MBTI (personalizable)
+        $similarity = 0;
+        for ($i = 0; $i < 4; $i++) {
+            if ($userMBTI[$i] === $psychologistMBTI[$i]) {
+                $similarity += 25;
+            }
+        }
+
+        return $similarity; // Resultado entre 0 y 100
     }
 
-    // Método para combinar las coincidencias generales y MBTI
     private function calculateFinalMatchPercentage(User $user, Psychologist $psychologist)
     {
-        // Calcular coincidencia basada en las respuestas
         $generalPercentage = $this->calculateMatchPercentage($user, $psychologist);
-
-        // Calcular coincidencia basada en MBTI
         $mbtiPercentage = $this->calculateMBTICoincidence($user, $psychologist);
 
-        // Promediar los porcentajes de coincidencia (ajustar los pesos según lo que consideres más importante)
-        $finalPercentage = ($generalPercentage + $mbtiPercentage) / 2;
-
-        return $finalPercentage;
+        return ($generalPercentage + $mbtiPercentage) / 2;
     }
 
-    // Método para generar razones para la coincidencia
-    private function generateMatchReasons(Psychologist $psychologist)
+    private function generateMatchReasons(Psychologist $psychologist, User $user)
     {
         return [
-            'El psicólogo tiene experiencia en tu área de interés.',
-            'El enfoque terapéutico del psicólogo es compatible con tu personalidad.',
-            'Tienes un alto porcentaje de coincidencia con su enfoque y experiencia.'
+            "Tu tipo MBTI ({$user->mbti_type}) comparte similitudes importantes con el del psicólogo ({$psychologist->mbti_type}).",
+            'El psicólogo tiene experiencia en áreas relacionadas con tu tipo de personalidad.',
+            'Tienes un alto nivel de coincidencia en tus respuestas del test de compatibilidad.'
         ];
     }
 }
