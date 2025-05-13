@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateQuestionsTable extends Migration
+class CreateMbtiResultsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +13,17 @@ class CreateQuestionsTable extends Migration
      */
     public function up()
 {
-    Schema::create('questions', function (Blueprint $table) {
+    Schema::create('mbti_results', function (Blueprint $table) {
         $table->id();
-        $table->string('text'); // Pregunta
-        $table->string('dimension'); // Ej: EI, SN, TF, JP
-        $table->string('option_a'); // Ej: Extrovertido
-        $table->string('option_b'); // Ej: Introvertido
+        $table->unsignedBigInteger('user_id');
+        $table->string('type'); // EJ: INFP, ESTJ, etc
+        $table->text('description')->nullable();
         $table->timestamps();
+
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
     });
 }
+
 
     /**
      * Reverse the migrations.
@@ -30,6 +32,6 @@ class CreateQuestionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('questions');
+        Schema::dropIfExists('mbti_results');
     }
 }

@@ -88,19 +88,30 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url('/') }}">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/user') }}">Dashboard Usuario</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url('/psychologists') }}">Psicólogos</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/questions') }}">Test</a></li>
+
+                    @auth
+                        <li class="nav-item"><a class="nav-link" href="{{ route('dashboard') }}">Mi Perfil</a></li>
+                        @if(!auth()->user()->mbti)
+                            <li class="nav-item"><a class="nav-link" href="{{ route('mbti.test') }}">Test</a></li>
+                        @endif
+                    @else
+                        <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Iniciar Sesión</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Registrarse</a></li>
+                    @endauth
                 </ul>
             </div>
         </div>
     </nav>
+
     <div class="container my-4">
         @yield('content')
     </div>
+
     <footer class="bg-dark text-white text-center py-3 mt-auto">
         &copy; {{ date('Y') }} Psicólogos Online. Todos los derechos reservados.
     </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

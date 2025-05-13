@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role', // paciente, psicólogo o admin
+        'mbti_result', // resultado del test MBTI
     ];
 
     /**
@@ -120,5 +121,10 @@ class User extends Authenticatable
     public function isPatient()
     {
         return $this->role === 'patient';
+    }
+
+    public function mbtiResult()
+    {
+        return $this->hasOne(MbtiResult::class);
     }
 }

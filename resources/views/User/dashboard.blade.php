@@ -5,7 +5,10 @@
 @section('content')
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h1>Mi Perfil</h1>
-        <span>Miembro desde {{ auth()->check() ? auth()->user()->created_at->format('M Y') : 'N/A' }}</span>
+        <span>
+            Miembro desde 
+            {{ auth()->check() && auth()->user()->created_at ? auth()->user()->created_at->format('M Y') : 'N/A' }}
+        </span>
     </div>
     
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
@@ -21,14 +24,10 @@
                         
                         <h4>{{ $recommendedPsychologist->name }}</h4>
                         <p class="match-percentage">{{ $recommendedPsychologist->match_percentage }}% de coincidencia</p>
-                        
-                        <a href="{{ route('psychologists.show', $recommendedPsychologist->id) }}" class="btn">
-                            Ver perfil
-                        </a>
                     </div>
                 @else
                     <p>Completa el test para encontrar tu psicólogo ideal</p>
-                    <a href="{{ route('questions.index') }}" class="btn">Realizar test</a>
+                    <a href="{{ route('mbti.test') }}" class="btn btn-primary">Realizar test</a>
                 @endif
             </div>
         </div>
@@ -40,9 +39,15 @@
                 
                 <div style="margin: 20px 0;">
                     <h3>Perfil de Personalidad</h3>
-                    <div style="background: #f0f0f0; padding: 15px; border-radius: 8px;">
-                        <h4 style="color: var(--primary-color);">INFJ</h4>
-                        <p>El Consejero - Intuitivo, compasivo y perspicaz.</p>
+                    <div style="background: #fffaf0; padding: 15px; border-radius: 8px; text-align: center;">
+                        @if($user->mbtiResult)
+                            <h4 style="color: var(--primary-color);">{{ $user->mbtiResult->type }}</h4>
+                            <p>{{ $user->mbtiResult->description ?? 'Descripción no disponible aún.' }}</p>
+                        @else
+                            <p>No has realizado el test de personalidad aún.</p>
+                            <a href="{{ route('mbti.test') }}" class="btn btn-primary">Realizar test</a>
+                        @endif
+
                     </div>
                 </div>
                 

@@ -19,12 +19,20 @@
                     <h3 class="text-lg font-medium mb-4">{{ $question->question_text }}</h3>
                     
                     <div class="space-y-3">
-                        @foreach(['Totalmente en desacuerdo', 'En desacuerdo', 'Neutral', 'De acuerdo', 'Totalmente de acuerdo'] as $i => $option)
-                        <label class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $i + 1 }}" class="h-4 w-4 text-indigo-600" required>
-                            <span>{{ $option }}</span>
-                        </label>
-                        @endforeach
+                        @foreach($questions as $index => $question)
+                            <div class="question mb-8 {{ $index !== 0 ? 'hidden' : '' }}" data-index="{{ $index }}">
+                                <h3 class="text-lg font-medium mb-4">{{ $question->question_text }}</h3>
+
+                                <div class="space-y-3">
+                                    @foreach(['Totalmente en desacuerdo', 'En desacuerdo', 'Neutral', 'De acuerdo', 'Totalmente de acuerdo'] as $i => $option)
+                                        <label class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                            <input type="radio" name="answers[{{ $question->id }}]" value="{{ $i + 1 }}" class="h-4 w-4 text-indigo-600" required>
+                                            <span>{{ $option }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                    @endforeach
                     </div>
                 </div>
                 @endforeach

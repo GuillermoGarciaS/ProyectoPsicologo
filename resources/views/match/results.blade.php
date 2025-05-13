@@ -6,7 +6,7 @@
     <div class="container">
         <h1>Tus Resultados</h1>
         
-        @if(auth()->check() && $bestMatch)
+        @if(auth()->check() && isset($bestMatch))
             <div class="card">
                 <div class="card-header">
                     <h2>Tu mejor coincidencia</h2>
@@ -28,15 +28,9 @@
                         </ul>
                     </div>
                     
-                    @if($psychologistsRoute)
-                        <a href="{{ route('psychologists.show', $bestMatch['psychologist']->id) }}" class="btn btn-primary mt-3">
-                            Ver perfil completo
-                        </a>
-                    @else
-                        <a href="/psychologists/{{ $bestMatch['psychologist']->id }}" class="btn btn-primary mt-3">
-                            Ver perfil completo
-                        </a>
-                    @endif
+                    <a href="{{ route('psychologists.show', $bestMatch['psychologist']->id) }}" class="btn btn-primary mt-3">
+                        Ver perfil completo
+                    </a>
                 </div>
             </div>
         @else

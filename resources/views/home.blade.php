@@ -1,35 +1,54 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    body {
+        background-color: #fdf6ee;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .welcome-card, .guest-card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin-top: 40px;
+        color: #333;
+        text-align: center;
+    }
+    h1 {
+        color: #002244;
+        margin-bottom: 20px;
+    }
+    .btn-link {
+        display: inline-block;
+        background-color: #003366;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 6px;
+        text-decoration: none;
+        margin: 10px;
+        transition: background-color 0.3s ease;
+    }
+    .btn-link:hover {
+        background-color: #005599;
+    }
+</style>
+
+
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Bienvendio') }}</div>
-
-                <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    @auth
-                        {{ __('Has Iniciado Sesion') }}<br>
-                        <strong>{{ $user->name }}</strong>
-                        <div class="mt-3">
-                            <a href="{{ route('User.Dashboard') }}" class="btn btn-primary">
-                                Go to Dashboard
-                            </a>
-                        </div>
-                    @else
-                        <p>Bienvenido por favor inicia sesion o registrate.</p>
-                        <div class="mt-3">
-                        </div>
-                    @endauth
-                </div>
-            </div>
+    @auth
+        <div class="welcome-card">
+            <h1>¡Bienvenido, {{ Auth::user()->name }}!</h1>
+            <p>Tu correo electrónico: {{ Auth::user()->email }}</p>
         </div>
-    </div>
+    @else
+    <div class="guest-card">
+    <h1>Bienvenido/a</h1>
+    <p>Por favor, inicia sesión o regístrate para continuar.</p>
+    <a href="{{ route('login') }}" class="btn-link">Iniciar sesión</a>
+    <a href="{{ route('register') }}" class="btn-link">Registrarse</a>
+</div>
+
+    @endauth
 </div>
 @endsection
